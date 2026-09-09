@@ -1,4 +1,4 @@
-# io-iwriter
+# kotoba-io-iwriter
 
 `kotoba.io.iwriter/IWriter`
 
