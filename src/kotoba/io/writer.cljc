@@ -1,4 +1,4 @@
-(ns kotoba.io.iwriter
+(ns kotoba.io.writer
   "IWriter -- addressed on its own.
 
   Split out of kotoba.lang.io on 2026-09-09 (ADR-2609091200). The unit
@@ -7,5 +7,5 @@
 "
   )
 
-(defprotocol IWriter
+(defprotocol Writer
   (write! [writer chunk] "Append `chunk` (a byte array). Returns nil."))
