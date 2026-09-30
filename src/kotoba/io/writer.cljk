@@ -4,8 +4,40 @@
   Split out of kotoba.lang.io on 2026-09-09 (ADR-2609091200). The unit
   here is the DEFINITION, and this repo's deps.edn names exactly the
   definitions it reaches -- nothing else.
-"
-  )
 
-(defprotocol Writer
-  (write! [writer chunk] "Append `chunk` (a byte array). Returns nil."))
+  KOTOBA reading (the :kotoba branches; the host protocol is unchanged). See
+  kotoba.io.reader for why the protocol and its one concrete implementation,
+  BufferWriter, are declared together and why state is a value. The host's
+  `write!` returns nil after appending into a mutable buffer; here `write!`
+  returns the WRITER AFTER the write, and `written` reads the bytes
+  accumulated so far. A caller that ignores write!'s result is the case that
+  differs."
+  #?(:kotoba (:schemas {:kotoba.io.writer/BufferWriter
+                    [:record :kotoba.io.writer/BufferWriter [[:buf :bytes]]]})))
+
+#?(:kotoba
+   (defprotocol Writer
+     (-write [writer chunk :bytes])
+     (-written [writer]))
+   :default
+   (defprotocol Writer
+     (write! [writer chunk] "Append `chunk` (a byte array). Returns nil.")))
+
+#?(:kotoba
+   (defrecord BufferWriter [buf :bytes]
+     Writer
+     (-write [this chunk] (->BufferWriter (bytes-concat (:buf this) chunk)))
+     (-written [this] (:buf this))))
+
+#?(:kotoba
+   (defn writer-of [buf :bytes] [:ref :kotoba.io.writer/BufferWriter]
+     (->BufferWriter buf)))
+
+#?(:kotoba
+   (defn write! [writer [:ref :kotoba.io.writer/BufferWriter] chunk :bytes]
+     [:ref :kotoba.io.writer/BufferWriter]
+     (-write writer chunk)))
+
+#?(:kotoba
+   (defn written [writer [:ref :kotoba.io.writer/BufferWriter]] :bytes
+     (-written writer)))
